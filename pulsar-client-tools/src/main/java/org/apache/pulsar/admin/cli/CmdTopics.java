@@ -28,7 +28,9 @@ import com.google.gson.JsonParser;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -48,7 +50,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pulsar.admin.cli.utils.TopicSubscriptionsVisualizer;
 import org.apache.pulsar.cli.converters.picocli.ByteUnitToIntegerConverter;
 import org.apache.pulsar.cli.converters.picocli.ByteUnitToLongConverter;
 import org.apache.pulsar.cli.converters.picocli.TimeUnitToMillisConverter;
@@ -83,6 +87,7 @@ import org.apache.pulsar.common.policies.data.PersistentTopicInternalStats;
 import org.apache.pulsar.common.policies.data.PublishRate;
 import org.apache.pulsar.common.policies.data.RetentionPolicies;
 import org.apache.pulsar.common.policies.data.SubscribeRate;
+import org.apache.pulsar.common.policies.data.TopicStats;
 import org.apache.pulsar.common.util.DateFormatter;
 import org.apache.pulsar.common.util.ObjectMapperFactory;
 import picocli.CommandLine.Command;
@@ -119,6 +124,7 @@ public class CmdTopics extends CmdBase {
         addCommand("stats", new GetStats());
         addCommand("stats-internal", new GetInternalStats());
         addCommand("info-internal", new GetInternalInfo());
+        addCommand("subscriptions-visual-stats", new GetSubscriptionsVisualStats());
 
         addCommand("partitioned-stats", new GetPartitionedStats());
         addCommand("partitioned-stats-internal", new GetPartitionedStatsInternal());
@@ -771,6 +777,33 @@ public class CmdTopics extends CmdBase {
             JsonObject result = JsonParser.parseString(internalInfo).getAsJsonObject();
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             System.out.println(gson.toJson(result));
+        }
+    }
+
+    @Command(description = "Get the internal metadata info for the topic")
+    private class GetSubscriptionsVisualStats extends CliCommand {
+        @Parameter(description = "persistent://tenant/namespace/topic", required = true)
+        private java.util.List<String> params;
+
+        @Parameter(names = { "-f", "--filename" }, description = "Output filename")
+        private String outputFilename;
+
+        @Override
+        @SneakyThrows
+        void run() throws PulsarAdminException {
+            String topic = validateTopicName(params);
+            final PersistentTopicInternalStats internalStats = getTopics().getInternalStats(topic);
+            final TopicStats stats = getTopics().getStats(topic);
+
+            final String result = TopicSubscriptionsVisualizer.createHtml(topic, internalStats, stats);
+            if (outputFilename != null) {
+                final Path path = new File(outputFilename).toPath();
+                Files.write(path, result.getBytes(StandardCharsets.UTF_8));
+                print("Written to " + path.toFile().getAbsolutePath());
+            } else {
+                print(result);
+            }
+
         }
     }
 
