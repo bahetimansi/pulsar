@@ -46,8 +46,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -140,6 +142,7 @@ import org.apache.pulsar.common.naming.NamespaceName;
 import org.apache.pulsar.common.naming.SystemTopicNames;
 import org.apache.pulsar.common.naming.TopicDomain;
 import org.apache.pulsar.common.naming.TopicName;
+import org.apache.pulsar.common.policies.data.ClusterData;
 import org.apache.pulsar.common.policies.data.DelayedDeliveryPolicies;
 import org.apache.pulsar.common.policies.data.ManagedLedgerInternalStats;
 import org.apache.pulsar.common.policies.data.RetentionPolicies;
@@ -163,6 +166,7 @@ import org.mockito.stubbing.Answer;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -1733,8 +1737,8 @@ public class TransactionTest extends TransactionTestBase {
         Transaction txn = pulsarClient.newTransaction()
                 .withTransactionTimeout(5, TimeUnit.SECONDS).build().get();
         producer.newMessage(txn)
-                    .value(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8))
-                    .send();
+                .value(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8))
+                .send();
         txn.commit();
     }
 
@@ -2064,4 +2068,90 @@ public class TransactionTest extends TransactionTestBase {
         assertEquals(messages1.size(), 1);
         assertEquals(messages1.get(0).getValue(), body);
     }
+
+    @DataProvider(name = "BlockTransactionsIfReplicationEnabledValues")
+    public static Object[][] packageNamesProvider() {
+        return new Object[][]{
+                {false},{true}
+        };
+    }
+
+    @Test(dataProvider = "BlockTransactionsIfReplicationEnabledValues")
+    public void testBlockTransactionsIfReplicationEnabled(boolean block) throws Exception {
+        conf.setBlockTransactionsIfReplicationEnabled(block);
+        admin.clusters().createCluster("r1", ClusterData.builder()
+                .serviceUrl(getPulsarServiceList().get(0).getWebServiceAddress())
+                .build()
+        );
+        final String namespace = TENANT + "/txndisabledns";
+        admin.namespaces().createNamespace(namespace);
+        String topic = "persistent://" + namespace + "/block-" + block;
+        admin.topics().createNonPartitionedTopic(topic);
+        getPulsarServiceList().get(0)
+                .getPulsarResources()
+                .getNamespaceResources()
+                .setPolicies(NamespaceName.get(namespace), p -> {
+                    p.replication_clusters = new HashSet<>(Arrays.asList(CLUSTER_NAME, "r1"));
+                    return p;
+                });
+        getPulsarServiceList().get(0)
+                .getBrokerService()
+                .getTopic(topic, false)
+                .get()
+                .get()
+                .checkReplication()
+                .get();
+
+        @Cleanup
+        Consumer<byte[]> consumer = getConsumer(topic, "s1");
+        @Cleanup
+        Producer<String> producer = pulsarClient.newProducer(Schema.STRING)
+                .producerName("testBlocked").sendTimeout(0, TimeUnit.SECONDS)
+                .topic(topic).enableBatching(true)
+                .create();
+
+        Transaction transaction = pulsarClient.newTransaction()
+                .withTransactionTimeout(10, TimeUnit.SECONDS).build().get();
+        try {
+            producer.newMessage(transaction)
+                    .value("test")
+                    .send();
+            if (block) {
+                fail();
+            }
+        } catch (PulsarClientException.NotAllowedException notAllowedException) {
+            if (block) {
+                assertEquals(notAllowedException.getMessage(), "Transactions are not allowed "
+                        + "in a namespace with replication enabled");
+            } else {
+                fail("unexpected exception with block=false: " + notAllowedException.getMessage());
+            }
+        }
+
+
+        final MessageId msgNoTxn = producer.newMessage()
+                .value("testnotxn")
+                .send();
+
+        try {
+            consumer.acknowledgeAsync(msgNoTxn, transaction).get();
+            if (block) {
+                fail();
+            }
+        } catch (ExecutionException ex) {
+            if (block) {
+                assertTrue(PulsarClientException.unwrap(ex.getCause()).getMessage()
+                        .contains("Transactions are not allowed in a namespace with replication enabled"));
+            } else {
+                fail("unexpected exception with block=false: " + ex.getCause().getMessage());
+            }
+        } finally {
+            getPulsarServiceList().get(0)
+                    .getPulsarResources()
+                    .getNamespaceResources().deletePolicies(NamespaceName.get(namespace));
+            admin.clusters().deleteCluster("r1");
+        }
+        consumer.acknowledgeAsync(msgNoTxn).get();
+    }
+
 }
