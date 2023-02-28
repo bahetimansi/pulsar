@@ -44,7 +44,6 @@ import org.apache.pulsar.common.protocol.Commands;
 import org.apache.pulsar.common.sasl.SaslConstants;
 import org.apache.pulsar.common.util.DefaultPulsarSslFactory;
 
-
 @Getter
 @Setter
 public class ProxyConfiguration implements PulsarConfiguration {
@@ -200,6 +199,12 @@ public class ProxyConfiguration implements PulsarConfiguration {
                 + " support multi url yet."
     )
     private String brokerWebServiceURLTLS;
+
+    @FieldContext(
+        category = CATEGORY_BROKER_DISCOVERY,
+        doc = "The lookup handler class name"
+    )
+    private String lookupHandler = "org.apache.pulsar.proxy.server.DefaultLookupProxyHandler";
 
     @FieldContext(
         category = CATEGORY_BROKER_DISCOVERY,

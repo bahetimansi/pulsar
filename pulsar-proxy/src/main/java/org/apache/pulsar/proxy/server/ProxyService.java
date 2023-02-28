@@ -545,7 +545,9 @@ public class ProxyService implements Closeable {
     private static final Logger LOG = LoggerFactory.getLogger(ProxyService.class);
 
     protected LookupProxyHandler newLookupProxyHandler(ProxyConnection proxyConnection) {
-        return new LookupProxyHandler(this, proxyConnection);
+        LookupProxyHandler newLookupProxyHandler = new DefaultLookupProxyHandler();
+        newLookupProxyHandler.initialize(this, proxyConnection);
+        return newLookupProxyHandler;
     }
 
     // Shutdown the event loop.
