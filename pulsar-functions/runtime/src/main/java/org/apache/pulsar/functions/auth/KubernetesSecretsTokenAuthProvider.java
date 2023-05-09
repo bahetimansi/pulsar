@@ -206,6 +206,7 @@ public class KubernetesSecretsTokenAuthProvider implements KubernetesFunctionAut
                 .supplier(() -> {
                     try {
                         coreClient.readNamespacedSecret(secretName, kubeNamespace, null);
+                        coreClient.readNamespacedSecret(secretName, kubeNamespace, null);
 
                     } catch (ApiException e) {
                         // statefulset is gone
@@ -305,6 +306,7 @@ public class KubernetesSecretsTokenAuthProvider implements KubernetesFunctionAut
 
                     try {
                         coreClient.createNamespacedSecret(kubeNamespace, v1Secret, null, null, null, null);
+                        coreClient.createNamespacedSecret(kubeNamespace, v1Secret, null, null, null, null);
                     } catch (ApiException e) {
                         if (e.getCode() == HTTP_CONFLICT) {
                             try {
@@ -366,6 +368,7 @@ public class KubernetesSecretsTokenAuthProvider implements KubernetesFunctionAut
                             .metadata(new V1ObjectMeta().name(getSecretName(id)))
                             .data(buildSecretMap(token));
                     try {
+                        coreClient.createNamespacedSecret(kubeNamespace, v1Secret, null, null, null, null);
                         coreClient.createNamespacedSecret(kubeNamespace, v1Secret, null, null, null, null);
                     } catch (ApiException e) {
                         // already exists
