@@ -185,7 +185,9 @@ public abstract class ElasticSearchClientSslTests extends ElasticSearchTestBase 
     }
 
     private void testClientWithConfig(ElasticSearchConfig config) throws IOException {
-        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class));) {
+        SinkContext mockContext = mock(SinkContext.class);
+        ElasticSearchMetrics metrics = new ElasticSearchMetrics(mockContext);
+        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class), metrics);) {
             testIndexExists(client);
         }
     }

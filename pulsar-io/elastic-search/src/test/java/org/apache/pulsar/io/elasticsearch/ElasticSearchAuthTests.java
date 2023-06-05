@@ -73,8 +73,10 @@ public abstract class ElasticSearchAuthTests extends ElasticSearchTestBase {
         config.setIndexName(indexName);
         config.setMaxRetries(1);
         config.setBulkEnabled(true);
+        SinkContext mockContext = mock(SinkContext.class);
+        ElasticSearchMetrics metrics = new ElasticSearchMetrics(mockContext);
         // ensure auth is needed
-        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class));) {
+        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class), metrics);) {
             expectThrows(ElasticSearchConnectionException.class, () -> {
                 client.createIndexIfNeeded(indexName);
             });
@@ -82,7 +84,7 @@ public abstract class ElasticSearchAuthTests extends ElasticSearchTestBase {
 
         config.setPassword(ELASTICPWD);
 
-        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class));) {
+        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class), metrics);) {
             ensureCalls(client, indexName);
         }
     }
@@ -98,10 +100,11 @@ public abstract class ElasticSearchAuthTests extends ElasticSearchTestBase {
         config.setMaxRetries(1);
         config.setBulkEnabled(true);
 
-
+        SinkContext mockContext = mock(SinkContext.class);
+        ElasticSearchMetrics metrics = new ElasticSearchMetrics(mockContext);
         config.setPassword(ELASTICPWD);
         String token;
-        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class));) {
+        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class), metrics);) {
             token = createAuthToken(client, "elastic", ELASTICPWD);
         }
 
@@ -109,14 +112,14 @@ public abstract class ElasticSearchAuthTests extends ElasticSearchTestBase {
         config.setPassword(null);
 
         // ensure auth is needed
-        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class));) {
+        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class), metrics);) {
             expectThrows(ElasticSearchConnectionException.class, () -> {
                 client.createIndexIfNeeded(indexName);
             });
         }
 
         config.setToken(token);
-        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class));) {
+        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class), metrics);) {
             ensureCalls(client, indexName);
         }
     }
@@ -132,9 +135,11 @@ public abstract class ElasticSearchAuthTests extends ElasticSearchTestBase {
         config.setMaxRetries(1);
         config.setBulkEnabled(true);
 
+        SinkContext mockContext = mock(SinkContext.class);
+        ElasticSearchMetrics metrics = new ElasticSearchMetrics(mockContext);
         config.setPassword(ELASTICPWD);
         String apiKey;
-        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class));) {
+        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class), metrics);) {
             apiKey = createApiKey(client);
         }
 
@@ -142,14 +147,14 @@ public abstract class ElasticSearchAuthTests extends ElasticSearchTestBase {
         config.setPassword(null);
 
         // ensure auth is needed
-        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class));) {
+        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class), metrics);) {
             expectThrows(ElasticSearchConnectionException.class, () -> {
                 client.createIndexIfNeeded(indexName);
             });
         }
 
         config.setApiKey(apiKey);
-        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class));) {
+        try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class), metrics);) {
             ensureCalls(client, indexName);
         }
     }
