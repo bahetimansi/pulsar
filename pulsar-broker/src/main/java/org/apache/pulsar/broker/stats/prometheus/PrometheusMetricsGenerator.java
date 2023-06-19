@@ -473,9 +473,12 @@ public class PrometheusMetricsGenerator implements AutoCloseable {
                     if (metric.getKey().isEmpty() || "cluster".equals(metric.getKey())) {
                         continue;
                     }
-                    stream.write(", ").write(metric.getKey()).write("=\"").write(metric.getValue()).write('"');
+                    final String metricValue = PrometheusMetricsGeneratorUtils
+                            .writeEscapedLabelValue(metric.getValue());
+                    stream.write(", ").write(metric.getKey()).write("=\"").write(metricValue).write('"');
                     if (value != null && !value.isEmpty() && !appendedQuantile) {
-                        stream.write(", ").write("quantile=\"").write(value).write('"');
+                        stream.write(", ").write("quantile=\"").write(PrometheusMetricsGeneratorUtils
+                                .writeEscapedLabelValue(value)).write('"');
                         appendedQuantile = true;
                     }
                 }

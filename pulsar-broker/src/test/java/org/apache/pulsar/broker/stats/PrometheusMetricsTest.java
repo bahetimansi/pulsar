@@ -2026,6 +2026,66 @@ public class PrometheusMetricsTest extends BrokerTestBase {
         p2.close();
     }
 
+    /**
+     * Hacky parsing of Prometheus text format. Should be good enough for unit tests
+     */
+    public static Multimap<String, Metric> parseMetrics(String metrics) {
+        Multimap<String, Metric> parsed = ArrayListMultimap.create();
+
+        // Example of lines are
+        // jvm_threads_current{cluster="standalone",} 203.0
+        // or
+        // pulsar_subscriptions_count{cluster="standalone", namespace="public/default",
+        // topic="persistent://public/default/test-2"} 0.0
+        Pattern pattern = Pattern.compile("^(\\w+)\\{([^\\}]+)\\}\\s([+-]?[\\d\\w\\.-]+)$");
+        Pattern tagsPattern = Pattern.compile("(\\w+)=\"([^\"]+)\"(,\\s?)?");
+
+        Splitter.on("\n").split(metrics).forEach(line -> {
+            if (line.isEmpty() || line.startsWith("#")) {
+                return;
+            }
+
+            Matcher matcher = pattern.matcher(line);
+            assertTrue(matcher.matches(), "line " + line + " does not match pattern " + pattern);
+            String name = matcher.group(1);
+
+            Metric m = new Metric();
+            String numericValue = matcher.group(3);
+            if (numericValue.equalsIgnoreCase("-Inf")) {
+                m.value = Double.NEGATIVE_INFINITY;
+            } else if (numericValue.equalsIgnoreCase("+Inf")) {
+                m.value = Double.POSITIVE_INFINITY;
+            } else {
+                m.value = Double.parseDouble(numericValue);
+            }
+            String tags = matcher.group(2);
+            Matcher tagsMatcher = tagsPattern.matcher(tags);
+            while (tagsMatcher.find()) {
+                String tag = tagsMatcher.group(1);
+                String value = tagsMatcher.group(2);
+                m.tags.put(tag, value);
+            }
+
+            parsed.put(name, m);
+        });
+
+        return parsed;
+    }
+
+    public static class Metric {
+        public Map<String, String> tags = new TreeMap<>();
+        public double value;
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(this).add("tags", tags).add("value", value).toString();
+        }
+    }
+
+    /**
+     * Test both subscription and topic name with special characters.
+     * @throws Exception
+     */
     @Test
     public void testEscapeLabelValue() throws Exception {
         String ns1 = "prop/ns-abc1";
@@ -2035,7 +2095,7 @@ public class PrometheusMetricsTest extends BrokerTestBase {
 
         @Cleanup
         final Consumer<?> consumer = pulsarClient.newConsumer()
-                .subscriptionName("sub")
+                .subscriptionName("s\"ub\\")
                 .topic(topic)
                 .subscribe();
         @Cleanup
@@ -2044,12 +2104,13 @@ public class PrometheusMetricsTest extends BrokerTestBase {
                 false, statsOut);
         String metricsStr = statsOut.toString();
         final List<String> subCountLines = metricsStr.lines()
-                .filter(line -> line.startsWith("pulsar_subscriptions_count"))
+                .filter(line -> line.startsWith("pulsar_subscription_msg_drop_rate"))
                 .collect(Collectors.toList());
         System.out.println(subCountLines);
         assertEquals(subCountLines.size(), 1);
         assertEquals(subCountLines.get(0),
-                "pulsar_subscriptions_count{cluster=\"test\",namespace=\"prop/ns-abc1\",topic=\"persistent://prop/ns-abc1/\\\"mytopic\"} 1");
+                "pulsar_subscription_msg_drop_rate{cluster=\"test\",namespace=\"prop/ns-abc1\","
+                        + "topic=\"persistent://prop/ns-abc1/\\\"mytopic\",subscription=\"s\\\"ub\\\\\"} 0.0");
     }
 
 }
