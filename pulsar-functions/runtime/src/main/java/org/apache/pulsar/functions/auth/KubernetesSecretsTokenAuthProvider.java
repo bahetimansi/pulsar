@@ -367,7 +367,6 @@ public class KubernetesSecretsTokenAuthProvider implements KubernetesFunctionAut
                             .data(buildSecretMap(token));
                     try {
                         coreClient.createNamespacedSecret(kubeNamespace, v1Secret, null, null, null, null);
-                        coreClient.createNamespacedSecret(kubeNamespace, v1Secret, null, null, null, null);
                     } catch (ApiException e) {
                         // already exists
                         if (e.getCode() == HTTP_CONFLICT) {
