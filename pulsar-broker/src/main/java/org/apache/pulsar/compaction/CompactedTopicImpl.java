@@ -45,6 +45,7 @@ import org.apache.bookkeeper.mledger.ManagedLedgerException;
 import org.apache.bookkeeper.mledger.Position;
 import org.apache.bookkeeper.mledger.impl.EntryImpl;
 import org.apache.bookkeeper.mledger.impl.ManagedCursorImpl;
+import org.apache.bookkeeper.mledger.impl.ManagedCursorImpl;
 import org.apache.bookkeeper.mledger.impl.PositionImpl;
 import org.apache.pulsar.broker.service.Consumer;
 import org.apache.pulsar.broker.service.persistent.PersistentDispatcherSingleActiveConsumer.ReadEntriesCtx;
@@ -123,6 +124,9 @@ public class CompactedTopicImpl implements CompactedTopic {
                 ManagedCursorImpl managedCursor = (ManagedCursorImpl) cursor;
                 int numberOfEntriesToRead = managedCursor.applyMaxSizeCap(maxEntries, bytesToRead);
 
+                ManagedCursorImpl managedCursor = (ManagedCursorImpl) cursor;
+                int numberOfEntriesToRead = managedCursor.applyMaxSizeCap(maxEntries, bytesToRead);
+
                 compactedTopicContext.thenCompose(
                     (context) -> findStartPoint(cursorPosition, context.ledger.getLastAddConfirmed(), context.cache)
                         .thenCompose((startPoint) -> {
@@ -137,6 +141,12 @@ public class CompactedTopicImpl implements CompactedTopic {
                                                          startPoint + (numberOfEntriesToRead - 1));
                                 return readEntries(context.ledger, startPoint, endPoint)
                                     .thenAccept((entries) -> {
+                                        long entriesSize = 0;
+                                        for (Entry entry : entries) {
+                                            entriesSize += entry.getLength();
+                                        }
+                                        managedCursor.updateReadStats(entries.size(), entriesSize);
+
                                         long entriesSize = 0;
                                         for (Entry entry : entries) {
                                             entriesSize += entry.getLength();
