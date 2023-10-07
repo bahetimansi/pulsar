@@ -140,7 +140,6 @@ public class PersistentTopicsTest extends MockedPulsarServiceBaseTest {
     @Override
     @BeforeMethod
     protected void setup() throws Exception {
-        conf.setTopicLevelPoliciesEnabled(false);
         super.internalSetup();
         persistentTopics = spy(PersistentTopics.class);
         persistentTopics.setServletContext(new MockServletContext());

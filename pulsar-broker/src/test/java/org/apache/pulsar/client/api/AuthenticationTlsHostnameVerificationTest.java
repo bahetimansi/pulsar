@@ -30,7 +30,6 @@ import org.apache.pulsar.broker.authentication.AuthenticationProviderTls;
 import org.apache.pulsar.client.impl.auth.AuthenticationTls;
 import org.apache.pulsar.common.tls.PublicSuffixMatcher;
 import org.apache.pulsar.common.tls.TlsHostnameVerifier;
-import org.assertj.core.util.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;

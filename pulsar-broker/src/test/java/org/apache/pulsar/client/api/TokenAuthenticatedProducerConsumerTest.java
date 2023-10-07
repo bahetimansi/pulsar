@@ -38,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 import lombok.Cleanup;
 import org.apache.pulsar.broker.authentication.AuthenticationProviderToken;
 import org.apache.pulsar.client.admin.PulsarAdmin;
-import org.apache.pulsar.client.impl.auth.AuthenticationToken;
 import org.apache.pulsar.common.policies.data.ClusterData;
 import org.apache.pulsar.common.policies.data.TenantInfoImpl;
 import org.slf4j.Logger;
@@ -99,8 +98,6 @@ public class TokenAuthenticatedProducerConsumerTest extends ProducerConsumerBase
         Set<String> providers = new HashSet<>();
         providers.add(AuthenticationProviderToken.class.getName());
         conf.setAuthenticationProviders(providers);
-        conf.setBrokerClientAuthenticationPlugin(AuthenticationToken.class.getName());
-        conf.setBrokerClientAuthenticationParameters("token:" + ADMIN_TOKEN);
 
         conf.setClusterName("test");
 

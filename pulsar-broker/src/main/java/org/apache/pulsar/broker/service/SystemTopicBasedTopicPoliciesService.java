@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -59,7 +58,6 @@ import org.apache.pulsar.common.naming.NamespaceName;
 import org.apache.pulsar.common.naming.TopicName;
 import org.apache.pulsar.common.policies.data.TopicPolicies;
 import org.apache.pulsar.common.util.FutureUtil;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,8 +95,8 @@ public class SystemTopicBasedTopicPoliciesService implements TopicPoliciesServic
 
     private final Map<NamespaceName, CompletableFuture<SystemTopicClient.Reader<PulsarEvent>>>
             readerCaches = new ConcurrentHashMap<>();
-
-    final Map<NamespaceName, CompletableFuture<Void>> policyCacheInitMap = new ConcurrentHashMap<>();
+    @VisibleForTesting
+    final Map<NamespaceName, Boolean> policyCacheInitMap = new ConcurrentHashMap<>();
 
     @VisibleForTesting
     final Map<TopicName, List<TopicPolicyListener<TopicPolicies>>> listeners = new ConcurrentHashMap<>();
@@ -267,12 +265,12 @@ public class SystemTopicBasedTopicPoliciesService implements TopicPoliciesServic
         }
         if (!policyCacheInitMap.containsKey(topicName.getNamespaceObject())) {
             NamespaceName namespace = topicName.getNamespaceObject();
-            prepareInitPoliciesCacheAsync(namespace);
+            prepareInitPoliciesCache(namespace, new CompletableFuture<>());
         }
 
         MutablePair<TopicPoliciesCacheNotInitException, TopicPolicies> result = new MutablePair<>();
         policyCacheInitMap.compute(topicName.getNamespaceObject(), (k, initialized) -> {
-            if (initialized == null || !initialized.isDone()) {
+            if (initialized == null || !initialized) {
                 result.setLeft(new TopicPoliciesCacheNotInitException());
             } else {
                 TopicPolicies topicPolicies =
@@ -288,34 +286,6 @@ public class SystemTopicBasedTopicPoliciesService implements TopicPoliciesServic
         } else {
             return result.getRight();
         }
-    }
-
-    @NotNull
-    @Override
-    public CompletableFuture<Optional<TopicPolicies>> getTopicPoliciesAsync(@NotNull TopicName topicName,
-                                                                            boolean isGlobal) {
-        requireNonNull(topicName);
-        final CompletableFuture<Void> preparedFuture = prepareInitPoliciesCacheAsync(topicName.getNamespaceObject());
-        return preparedFuture.thenApply(__ -> {
-            final TopicPolicies candidatePolicies = isGlobal
-                    ? globalPoliciesCache.get(TopicName.get(topicName.getPartitionedTopicName()))
-                    : policiesCache.get(TopicName.get(topicName.getPartitionedTopicName()));
-            return Optional.ofNullable(candidatePolicies);
-        });
-    }
-
-    @NotNull
-    @Override
-    public CompletableFuture<Optional<TopicPolicies>> getTopicPoliciesAsync(@NotNull TopicName topicName) {
-        requireNonNull(topicName);
-        final CompletableFuture<Void> preparedFuture = prepareInitPoliciesCacheAsync(topicName.getNamespaceObject());
-        return preparedFuture.thenApply(__ -> {
-            final TopicPolicies localPolicies = policiesCache.get(TopicName.get(topicName.getPartitionedTopicName()));
-            if (localPolicies != null) {
-                return Optional.of(localPolicies);
-            }
-            return Optional.ofNullable(globalPoliciesCache.get(TopicName.get(topicName.getPartitionedTopicName())));
-        });
     }
 
     @Override
@@ -341,18 +311,21 @@ public class SystemTopicBasedTopicPoliciesService implements TopicPoliciesServic
 
     @Override
     public CompletableFuture<Void> addOwnedNamespaceBundleAsync(NamespaceBundle namespaceBundle) {
+        CompletableFuture<Void> result = new CompletableFuture<>();
         NamespaceName namespace = namespaceBundle.getNamespaceObject();
         if (NamespaceService.isHeartbeatNamespace(namespace)) {
-            return CompletableFuture.completedFuture(null);
+            result.complete(null);
+            return result;
         }
         synchronized (this) {
             if (readerCaches.get(namespace) != null) {
                 ownedBundlesCountPerNamespace.get(namespace).incrementAndGet();
-                return CompletableFuture.completedFuture(null);
+                result.complete(null);
             } else {
-                return prepareInitPoliciesCacheAsync(namespace);
+                prepareInitPoliciesCache(namespace, result);
             }
         }
+        return result;
     }
 
     @VisibleForTesting
@@ -483,7 +456,8 @@ public class SystemTopicBasedTopicPoliciesService implements TopicPoliciesServic
                 if (log.isDebugEnabled()) {
                     log.debug("[{}] Reach the end of the system topic.", reader.getSystemTopic().getTopicName());
                 }
-
+                policyCacheInitMap.computeIfPresent(
+                        reader.getSystemTopic().getTopicName().getNamespaceObject(), (k, v) -> true);
                 // replay policy message
                 policiesCache.forEach(((topicName, topicPolicies) -> {
                     if (listeners.get(topicName) != null) {
@@ -496,7 +470,6 @@ public class SystemTopicBasedTopicPoliciesService implements TopicPoliciesServic
                         }
                     }
                 }));
-
                 future.complete(null);
             }
         });
@@ -548,7 +521,7 @@ public class SystemTopicBasedTopicPoliciesService implements TopicPoliciesServic
                 })
                 .whenComplete((__, ex) -> {
                     if (ex == null) {
-                        readMorePoliciesAsync(reader);
+                        readMorePolicies(reader);
                     } else {
                         Throwable cause = FutureUtil.unwrapCompletionException(ex);
                         if (cause instanceof PulsarClientException.AlreadyClosedException) {
@@ -558,7 +531,7 @@ public class SystemTopicBasedTopicPoliciesService implements TopicPoliciesServic
                                     reader.getSystemTopic().getTopicName().getNamespaceObject(), false);
                         } else {
                             log.warn("Read more topic polices exception, read again.", ex);
-                            readMorePoliciesAsync(reader);
+                            readMorePolicies(reader);
                         }
                     }
                 });
@@ -738,7 +711,7 @@ public class SystemTopicBasedTopicPoliciesService implements TopicPoliciesServic
     }
 
     @VisibleForTesting
-    public CompletableFuture<Void> getPoliciesCacheInit(NamespaceName namespaceName) {
+    public Boolean getPoliciesCacheInit(NamespaceName namespaceName) {
         return policyCacheInitMap.get(namespaceName);
     }
 

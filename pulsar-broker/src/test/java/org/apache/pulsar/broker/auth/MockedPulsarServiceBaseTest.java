@@ -44,7 +44,6 @@ import lombok.Data;
 import org.apache.pulsar.broker.BrokerTestUtil;
 import org.apache.pulsar.broker.PulsarService;
 import org.apache.pulsar.broker.ServiceConfiguration;
-import org.apache.pulsar.broker.authentication.AuthenticationProviderTls;
 import org.apache.pulsar.broker.service.BrokerService;
 import org.apache.pulsar.broker.service.BrokerTestBase;
 import org.apache.pulsar.broker.service.persistent.PersistentTopic;
@@ -245,22 +244,6 @@ public abstract class MockedPulsarServiceBaseTest extends TestRetrySupport {
 
     protected final void init() throws Exception {
         doInitConf();
-        // trying to config the broker internal client
-        if (conf.getWebServicePortTls().isPresent()
-            && conf.getAuthenticationProviders().contains(AuthenticationProviderTls.class.getName())
-            && !conf.isTlsEnabledWithKeyStore()) {
-            // enabled TLS
-            if (conf.getBrokerClientAuthenticationPlugin() == null
-                || conf.getBrokerClientAuthenticationPlugin().equals(AuthenticationDisabled.class.getName())) {
-                conf.setBrokerClientAuthenticationPlugin(AuthenticationTls.class.getName());
-                conf.setBrokerClientAuthenticationParameters("tlsCertFile:" + BROKER_CERT_FILE_PATH
-                                                             + ",tlsKeyFile:" + BROKER_KEY_FILE_PATH);
-                conf.setBrokerClientTlsEnabled(true);
-                conf.setBrokerClientTrustCertsFilePath(CA_CERT_FILE_PATH);
-                conf.setBrokerClientCertificateFilePath(BROKER_CERT_FILE_PATH);
-                conf.setBrokerClientKeyFilePath(BROKER_KEY_FILE_PATH);
-            }
-        }
         startBroker();
     }
 
