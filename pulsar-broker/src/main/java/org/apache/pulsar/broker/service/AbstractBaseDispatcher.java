@@ -189,6 +189,8 @@ public abstract class AbstractBaseDispatcher extends EntryFilterSupport implemen
                                 (PositionImpl) entry.getPosition())) {
                     individualAcknowledgeMessageIfNeeded(Collections.singletonList(entry.getPosition()),
                             Collections.emptyMap());
+                    individualAcknowledgeMessageIfNeeded(Collections.singletonList(entry.getPosition()),
+                            Collections.emptyMap());
                     entries.set(i, null);
                     entry.release();
                     continue;
@@ -284,6 +286,7 @@ public abstract class AbstractBaseDispatcher extends EntryFilterSupport implemen
             }
         }
         if (CollectionUtils.isNotEmpty(entriesToFiltered)) {
+            individualAcknowledgeMessageIfNeeded(entriesToFiltered, Collections.emptyMap());
             individualAcknowledgeMessageIfNeeded(entriesToFiltered, Collections.emptyMap());
 
             int filtered = entriesToFiltered.size();
