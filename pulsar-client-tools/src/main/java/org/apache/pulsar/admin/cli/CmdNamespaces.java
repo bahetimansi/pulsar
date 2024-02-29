@@ -1961,8 +1961,7 @@ public class CmdNamespaces extends CmdBase {
         @Override
         void run() throws PulsarAdminException {
             String namespace = validateNamespace(params);
-            print("offloadThresholdInBytes: " + getAdmin().namespaces().getOffloadThreshold(namespace));
-            print("offloadThresholdInSeconds: " + getAdmin().namespaces().getOffloadThresholdInSeconds(namespace));
+            print(getAdmin().namespaces().getOffloadThreshold(namespace));
         }
     }
 
