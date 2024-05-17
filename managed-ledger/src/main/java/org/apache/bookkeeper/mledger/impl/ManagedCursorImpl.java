@@ -39,7 +39,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.util.concurrent.FastThreadLocal;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -132,13 +131,6 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("checkstyle:javadoctype")
 public class ManagedCursorImpl implements ManagedCursor {
-
-    private static final FastThreadLocal<LightMLDataFormats.PositionInfo> piThreadLocal = new FastThreadLocal<>() {
-        @Override
-        protected LightMLDataFormats.PositionInfo initialValue() {
-            return new LightMLDataFormats.PositionInfo();
-        }
-    };
 
     private static final Comparator<Entry> ENTRY_COMPARATOR = (e1, e2) -> {
         if (e1.getLedgerId() != e2.getLedgerId()) {
@@ -486,7 +478,7 @@ public class ManagedCursorImpl implements ManagedCursor {
         if (lastMarkDeleteEntry != null) {
             LAST_MARK_DELETE_ENTRY_UPDATER.updateAndGet(this, last -> {
                 Map<String, Long> properties = last.properties;
-                if (properties != null && properties.containsKey(key)) {
+                if (properties != null) {
                     properties.remove(key);
                 }
                 return last;
@@ -2071,7 +2063,7 @@ public class ManagedCursorImpl implements ManagedCursor {
             }
             callback.markDeleteFailed(
                     new ManagedLedgerException("Reset cursor in progress - unable to mark delete position "
-                            + position.toString()),
+                            + position),
                     ctx);
             return;
         }
@@ -3296,13 +3288,6 @@ public class ManagedCursorImpl implements ManagedCursor {
         }
     }
 
-    private static ByteBuf toByteBuf(LightMLDataFormats.PositionInfo pi) {
-        int size = pi.getSerializedSize();
-        ByteBuf buf = PulsarByteBufAllocator.DEFAULT.buffer(size, size);
-        pi.writeTo(buf);
-        return buf;
-    }
-
     void persistPositionToLedger(final LedgerHandle lh, MarkDeleteEntry mdEntry, final VoidCallback callback) {
         long now = System.nanoTime();
         PositionImpl position = mdEntry.newPosition;
@@ -3683,7 +3668,6 @@ public class ManagedCursorImpl implements ManagedCursor {
                     ledger.getScheduledExecutor().schedule(() -> asyncDeleteLedger(lh, retry - 1),
                         DEFAULT_LEDGER_DELETE_BACKOFF_TIME_SEC, TimeUnit.SECONDS);
                 }
-                return;
             } else {
                 log.info("[{}][{}] Successfully closed & deleted ledger {} in cursor", ledger.getName(), name,
                         lh.getId());
