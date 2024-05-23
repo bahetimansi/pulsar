@@ -23,6 +23,7 @@ import java.io.IOException;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.bookkeeper.mledger.Entry;
+import org.apache.pulsar.broker.ClassLoaderSwitcher;
 import org.apache.pulsar.common.nar.NarClassLoader;
 
 @Slf4j
@@ -56,6 +57,7 @@ public class EntryFilterWithClassLoader implements EntryFilter {
 
     @Override
     public void close() {
+
         ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(classLoader);
