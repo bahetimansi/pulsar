@@ -96,6 +96,7 @@ RUN apk add --no-cache \
             ca-certificates \
             procps \
             curl \
+            vim \
             bind-tools \
             openssl \
             coreutils
