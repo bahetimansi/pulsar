@@ -92,6 +92,7 @@ public class ExtensibleLoadManagerCloseTest {
         // Reduce these timeout configs to avoid failed tests being blocked too long
         config.setMetadataStoreOperationTimeoutSeconds(5);
         config.setNamespaceBundleUnloadingTimeoutMs(5000);
+        config.setLoadBalancerOverrideBrokerNicSpeedGbps(Optional.of(1.0d));
         return config;
     }
 

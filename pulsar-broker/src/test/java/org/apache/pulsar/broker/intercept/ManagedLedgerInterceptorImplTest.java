@@ -59,7 +59,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @Test(groups = "broker")
-public class ManagedLedgerInterceptorImplTest  extends MockedBookKeeperTestCase {
+public class ManagedLedgerInterceptorImplTest extends MockedBookKeeperTestCase {
     private static final Logger log = LoggerFactory.getLogger(ManagedLedgerInterceptorImplTest.class);
 
     public static class TestPayloadProcessor implements ManagedLedgerPayloadProcessor {
