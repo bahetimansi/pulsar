@@ -29,7 +29,6 @@ import static org.apache.bookkeeper.mledger.util.Errors.isNoSuchLedgerExistsExce
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
@@ -3332,7 +3331,7 @@ public class ManagedCursorImpl implements ManagedCursor {
     }
 
     void persistPositionToLedger(final LedgerHandle lh, MarkDeleteEntry mdEntry, final VoidCallback callback) {
-        Preconditions.checkArgument(maxPositionChunkSize > 0, "maxPositionChunkSize mus be greater than zero");
+        checkArgument(maxPositionChunkSize > 0, "maxPositionChunkSize mus be greater than zero");
         long now = System.nanoTime();
         PositionImpl position = mdEntry.newPosition;
 
