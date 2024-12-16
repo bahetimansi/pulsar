@@ -23,7 +23,6 @@ import java.io.IOException;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.bookkeeper.mledger.Entry;
-import org.apache.pulsar.broker.ClassLoaderSwitcher;
 import org.apache.pulsar.common.nar.NarClassLoader;
 
 @Slf4j
