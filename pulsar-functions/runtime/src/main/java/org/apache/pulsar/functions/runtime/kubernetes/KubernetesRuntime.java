@@ -237,9 +237,11 @@ public class KubernetesRuntime implements Runtime {
                 break;
         }
         String logLevel = "info";
+        log.info("KubernetesRuntime: " + instanceConfig.getFunctionDetails().getLogLevel());
         if (null != instanceConfig.getFunctionDetails().getLogLevel()) {
             logLevel = instanceConfig.getFunctionDetails().getLogLevel();
         }
+        log.info("KubernetesRuntime: logLevel: " + logLevel);
 
         this.authConfig = authConfig;
 

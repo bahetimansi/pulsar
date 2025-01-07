@@ -359,6 +359,7 @@ public class RuntimeUtils {
                 }
                 args.add(String.format("-D%s=%s", FUNCTIONS_INSTANCE_CLASSPATH, systemFunctionInstanceClasspath));
             }
+            log.info("-Dpulsar.log.level=" + logLevel);
             args.add("-Dpulsar.log.level=" + logLevel);
             args.add("-Dlog4j.configurationFile=" + logConfigFile);
             args.add("-Dpulsar.function.log.dir=" + genFunctionLogFolder(logDirectory, instanceConfig));

@@ -274,6 +274,9 @@ public class FunctionConfigUtils {
         if (functionConfig.getLogTopic() != null) {
             functionDetailsBuilder.setLogTopic(functionConfig.getLogTopic());
         }
+        if (functionConfig.getLogLevel() != null) {
+            functionDetailsBuilder.setLogLevel(functionConfig.getLogLevel());
+        }
         if (functionConfig.getRuntime() != null) {
             functionDetailsBuilder.setRuntime(FunctionCommon.convertRuntime(functionConfig.getRuntime()));
         }
@@ -448,6 +451,9 @@ public class FunctionConfigUtils {
         }
         if (!isEmpty(functionDetails.getLogTopic())) {
             functionConfig.setLogTopic(functionDetails.getLogTopic());
+        }
+        if (!isEmpty(functionDetails.getLogLevel())) {
+            functionConfig.setLogLevel(functionDetails.getLogLevel());
         }
         if (functionDetails.getSink().getForwardSourceMessageProperty()) {
             functionConfig.setForwardSourceMessageProperty(functionDetails.getSink().getForwardSourceMessageProperty());
@@ -809,6 +815,7 @@ public class FunctionConfigUtils {
         }
 
         if (!isEmpty(functionConfig.getLogLevel())) {
+            log.info("functionConfig.getLogLevel(): " + functionConfig.getLogLevel());
             if (!VALID_LOG_LEVELS.contains(functionConfig.getLogLevel().toUpperCase())) {
                 throw new IllegalArgumentException(
                         String.format("LogLevel %s is invalid", functionConfig.getLogLevel()));
