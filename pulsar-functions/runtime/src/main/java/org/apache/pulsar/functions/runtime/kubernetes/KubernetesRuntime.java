@@ -236,6 +236,10 @@ public class KubernetesRuntime implements Runtime {
             case GO:
                 break;
         }
+        String logLevel = "info";
+        if (null != instanceConfig.getFunctionDetails().getLogLevel()) {
+            logLevel = instanceConfig.getFunctionDetails().getLogLevel();
+        }
 
         this.authConfig = authConfig;
 
@@ -275,6 +279,7 @@ public class KubernetesRuntime implements Runtime {
                         grpcPort,
                         -1L,
                         logConfigFile,
+                        logLevel,
                         secretsProviderClassName,
                         secretsProviderConfig,
                         installUserCodeDependencies,

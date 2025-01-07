@@ -43,6 +43,7 @@ public class GoInstanceConfig {
     private String name = "";
     private String className = "";
     private String logTopic = "";
+    private String logLevel = "";
     private int processingGuarantees;
     private String secretsMap = "";
     private String userConfig = "";
