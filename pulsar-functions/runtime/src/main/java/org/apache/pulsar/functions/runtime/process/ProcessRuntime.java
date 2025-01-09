@@ -122,11 +122,9 @@ class ProcessRuntime implements Runtime {
             case GO:
                 break;
         }
-        String logLevel = "info";
+        String logLevel = instanceConfig.getFunctionDetails().getLogLevel();
+        if (StringUtils.isBlank(logLevel)) logLevel = "info";
         log.info("KubernetesRuntime: " + instanceConfig.getFunctionDetails().getLogLevel());
-        if (null != instanceConfig.getFunctionDetails().getLogLevel()) {
-            logLevel = instanceConfig.getFunctionDetails().getLogLevel();
-        }
         log.info("ProcessRuntime: logLevel: " + logLevel);
         this.extraDependenciesDir = extraDependenciesDir;
         this.narExtractionDirectory = narExtractionDirectory;

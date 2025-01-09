@@ -74,6 +74,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Response;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.functions.auth.KubernetesFunctionAuthProvider;
 import org.apache.pulsar.functions.instance.AuthenticationConfig;
 import org.apache.pulsar.functions.instance.InstanceConfig;
@@ -236,11 +237,9 @@ public class KubernetesRuntime implements Runtime {
             case GO:
                 break;
         }
-        String logLevel = "info";
+        String logLevel = instanceConfig.getFunctionDetails().getLogLevel();
+        if (StringUtils.isBlank(logLevel)) logLevel = "info";
         log.info("KubernetesRuntime: " + instanceConfig.getFunctionDetails().getLogLevel());
-        if (null != instanceConfig.getFunctionDetails().getLogLevel()) {
-            logLevel = instanceConfig.getFunctionDetails().getLogLevel();
-        }
         log.info("KubernetesRuntime: logLevel: " + logLevel);
 
         this.authConfig = authConfig;
