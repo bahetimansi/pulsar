@@ -249,7 +249,7 @@ public class CmdFunctions extends CmdBase {
         @Parameter(names = "--log-topic", description = "The topic to which the logs of a Pulsar Function are produced"
                 + " #Java, Python, Go")
         protected String logTopic;
-        @Parameter(names = "--logLevel", description = "Log level to which the logs of a Pulsar Function is produced"
+        @Parameter(names = "--logLevel", description = "Log level at which the logs of a Pulsar Function are produced"
                 + " #Java")
         protected String logLevel;
         @Parameter(names = {"-st", "--schema-type"}, description = "The builtin schema type or "
@@ -521,7 +521,6 @@ public class CmdFunctions extends CmdBase {
                 functionConfig.setLogTopic(logTopic);
             }
             if (null != logLevel) {
-                log.info("CmdFunctions: " + logLevel);
                 functionConfig.setLogLevel(logLevel);
             }
             if (null != className) {

@@ -410,7 +410,7 @@ public class CmdSinks extends CmdBase {
         @Parameter(names = "--transform-function-config", description = "Configuration of the transform function "
                 + "applied before the Sink")
         protected String transformFunctionConfig;
-        @Parameter(names = "--logLevel", description = "Log level to which the logs of a Pulsar Sink is produced")
+        @Parameter(names = "--logLevel", description = "Log level at which the logs of a Pulsar Sink are produced")
         protected String logLevel;
         protected SinkConfig sinkConfig;
 
@@ -608,7 +608,6 @@ public class CmdSinks extends CmdBase {
             }
 
             if (null != logLevel) {
-                log.info("CmdSinks: " + logLevel);
                 sinkConfig.setLogLevel(logLevel);
             }
 

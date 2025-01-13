@@ -558,7 +558,6 @@ public class SinkConfigUtils {
         }
 
         if (!isEmpty(sinkConfig.getLogLevel())) {
-            log.info("sinkConfig.getLogLevel(): " + sinkConfig.getLogLevel());
             if (!VALID_LOG_LEVELS.contains(sinkConfig.getLogLevel().toUpperCase())) {
                 throw new IllegalArgumentException(
                         String.format("LogLevel %s is invalid", sinkConfig.getLogLevel()));

@@ -365,7 +365,7 @@ public class CmdSources extends CmdBase {
         @Parameter(names = "--secrets", description = "The map of secretName to an object that encapsulates "
                 + "how the secret is fetched by the underlying secrets provider")
         protected String secretsString;
-        @Parameter(names = "--logLevel", description = "Log level to which the logs of a Pulsar Source is produced")
+        @Parameter(names = "--logLevel", description = "Log level at which the logs of a Pulsar Source are produced")
         protected String logLevel;
 
         protected SourceConfig sourceConfig;
@@ -502,7 +502,6 @@ public class CmdSources extends CmdBase {
             }
 
             if (null != logLevel) {
-                log.info("CmdSources: " + logLevel);
                 sourceConfig.setLogLevel(logLevel);
             }
 

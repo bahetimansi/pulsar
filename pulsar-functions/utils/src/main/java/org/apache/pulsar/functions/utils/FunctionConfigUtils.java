@@ -815,7 +815,6 @@ public class FunctionConfigUtils {
         }
 
         if (!isEmpty(functionConfig.getLogLevel())) {
-            log.info("functionConfig.getLogLevel(): " + functionConfig.getLogLevel());
             if (!VALID_LOG_LEVELS.contains(functionConfig.getLogLevel().toUpperCase())) {
                 throw new IllegalArgumentException(
                         String.format("LogLevel %s is invalid", functionConfig.getLogLevel()));

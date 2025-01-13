@@ -183,9 +183,6 @@ public class RuntimeUtils {
         if (instanceConfig.getFunctionDetails().getLogTopic() != null) {
             goInstanceConfig.setLogTopic(instanceConfig.getFunctionDetails().getLogTopic());
         }
-        if (instanceConfig.getFunctionDetails().getLogLevel() != null) {
-            goInstanceConfig.setLogLevel(instanceConfig.getFunctionDetails().getLogLevel());
-        }
         if (instanceConfig.getFunctionDetails().getProcessingGuarantees() != null) {
             goInstanceConfig
                     .setProcessingGuarantees(instanceConfig.getFunctionDetails().getProcessingGuaranteesValue());
@@ -359,7 +356,6 @@ public class RuntimeUtils {
                 }
                 args.add(String.format("-D%s=%s", FUNCTIONS_INSTANCE_CLASSPATH, systemFunctionInstanceClasspath));
             }
-            log.info("-Dpulsar.log.level=" + logLevel);
             args.add("-Dpulsar.log.level=" + logLevel);
             args.add("-Dlog4j.configurationFile=" + logConfigFile);
             args.add("-Dpulsar.function.log.dir=" + genFunctionLogFolder(logDirectory, instanceConfig));

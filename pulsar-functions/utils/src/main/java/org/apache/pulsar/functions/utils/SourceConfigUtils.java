@@ -367,7 +367,6 @@ public class SourceConfigUtils {
             }
         }
         if (!isEmpty(sourceConfig.getLogLevel())) {
-            log.info("sourceConfig.getLogLevel(): " + sourceConfig.getLogLevel());
             if (!VALID_LOG_LEVELS.contains(sourceConfig.getLogLevel().toUpperCase())) {
                 throw new IllegalArgumentException(
                         String.format("LogLevel %s is invalid", sourceConfig.getLogLevel()));
