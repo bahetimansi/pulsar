@@ -24,7 +24,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.apache.pulsar</groupId>
+        <groupId>com.datastax.oss</groupId>
         <artifactId>pulsar-functions</artifactId>
         <version>4.0.3-SNAPSHOT</version>
     </parent>
@@ -107,7 +107,7 @@
                             </transformers>
                             <artifactSet>
                                 <includes>
-                                    <include>org.apache.pulsar:*</include>
+                                    <include>com.datastax.oss:*</include>
                                     <include>org.apache.bookkeeper:*</include>
                                     <include>commons-*:*</include>
                                     <include>org.apache.commons:*</include>
@@ -141,7 +141,7 @@
                             </artifactSet>
                             <filters>
                                 <filter>
-                                    <artifact>org.apache.pulsar:pulsar-client-original</artifact>
+                                    <artifact>com.datastax.oss:pulsar-client-original</artifact>
                                     <includes>
                                         <include>**</include>
                                     </includes>
