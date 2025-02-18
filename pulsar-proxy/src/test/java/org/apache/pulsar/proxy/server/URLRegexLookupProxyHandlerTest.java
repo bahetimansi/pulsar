@@ -31,6 +31,8 @@ import java.util.concurrent.TimeUnit;
 import lombok.Cleanup;
 import org.apache.pulsar.broker.auth.MockedPulsarServiceBaseTest;
 import org.apache.pulsar.broker.authentication.AuthenticationService;
+import org.apache.pulsar.client.api.Authentication;
+import org.apache.pulsar.client.api.AuthenticationFactory;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.MessageRoutingMode;
@@ -48,6 +50,7 @@ public class URLRegexLookupProxyHandlerTest extends MockedPulsarServiceBaseTest 
 
     protected ProxyService proxyService;
     protected ProxyConfiguration proxyConfig = new ProxyConfiguration();
+    protected Authentication proxyClientAuthentication;
 
     @Override
     @BeforeClass
@@ -59,8 +62,12 @@ public class URLRegexLookupProxyHandlerTest extends MockedPulsarServiceBaseTest 
         proxyConfig.setMetadataStoreUrl(DUMMY_VALUE);
         proxyConfig.setConfigurationMetadataStoreUrl(GLOBAL_DUMMY_VALUE);
 
+        proxyClientAuthentication = AuthenticationFactory.create(proxyConfig.getBrokerClientAuthenticationPlugin(),
+                proxyConfig.getBrokerClientAuthenticationParameters());
+        proxyClientAuthentication.start();
+
         proxyService = Mockito.spy(new ProxyService(proxyConfig, new AuthenticationService(
-            PulsarConfigurationLoader.convertFrom(proxyConfig))));
+            PulsarConfigurationLoader.convertFrom(proxyConfig)), proxyClientAuthentication));
         doReturn(new ZKMetadataStore(mockZooKeeper)).when(proxyService).createLocalMetadataStore();
         doReturn(new ZKMetadataStore(mockZooKeeperGlobal)).when(proxyService).createConfigurationMetadataStore();
 
@@ -88,7 +95,7 @@ public class URLRegexLookupProxyHandlerTest extends MockedPulsarServiceBaseTest 
 
         @Cleanup
         ProxyService redirectProxyService = Mockito.spy(new ProxyService(redirectProxyConfig, new AuthenticationService(
-            PulsarConfigurationLoader.convertFrom(redirectProxyConfig))));
+            PulsarConfigurationLoader.convertFrom(redirectProxyConfig)), proxyClientAuthentication));
         doReturn(new ZKMetadataStore(mockZooKeeper)).when(redirectProxyService).createLocalMetadataStore();
         doReturn(new ZKMetadataStore(mockZooKeeperGlobal)).when(redirectProxyService).createConfigurationMetadataStore();
 
@@ -144,7 +151,7 @@ public class URLRegexLookupProxyHandlerTest extends MockedPulsarServiceBaseTest 
 
         @Cleanup
         ProxyService redirectProxyService = Mockito.spy(new ProxyService(redirectProxyConfig, new AuthenticationService(
-            PulsarConfigurationLoader.convertFrom(redirectProxyConfig))));
+            PulsarConfigurationLoader.convertFrom(redirectProxyConfig)), proxyClientAuthentication));
         doReturn(new ZKMetadataStore(mockZooKeeper)).when(redirectProxyService).createLocalMetadataStore();
         doReturn(new ZKMetadataStore(mockZooKeeperGlobal)).when(redirectProxyService).createConfigurationMetadataStore();
 

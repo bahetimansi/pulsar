@@ -196,7 +196,8 @@ public class Producer {
     }
 
     public void publishMessage(long producerId, long lowestSequenceId, long highestSequenceId,
-                               ByteBuf headersAndPayload, int batchSize, boolean isChunked, boolean isMarker, Position position) {
+                               ByteBuf headersAndPayload, int batchSize, boolean isChunked, boolean isMarker,
+                               Position position) {
         if (lowestSequenceId > highestSequenceId) {
             cnx.execute(() -> {
                 cnx.getCommandSender().sendSendError(producerId, highestSequenceId, ServerError.MetadataError,
