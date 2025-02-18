@@ -782,16 +782,16 @@ public class CmdTopics extends CmdBase {
 
     @Command(description = "Get the internal metadata info for the topic")
     private class GetSubscriptionsVisualStats extends CliCommand {
-        @Parameter(description = "persistent://tenant/namespace/topic", required = true)
-        private java.util.List<String> params;
+        @Parameters(description = "persistent://tenant/namespace/topic", arity = "1")
+        private String topicName;
 
-        @Parameter(names = { "-f", "--filename" }, description = "Output filename")
+        @Option(names = { "-f", "--filename" }, description = "Output filename")
         private String outputFilename;
 
         @Override
         @SneakyThrows
         void run() throws PulsarAdminException {
-            String topic = validateTopicName(params);
+            String topic = validateTopicName(topicName);
             final PersistentTopicInternalStats internalStats = getTopics().getInternalStats(topic);
             final TopicStats stats = getTopics().getStats(topic);
 

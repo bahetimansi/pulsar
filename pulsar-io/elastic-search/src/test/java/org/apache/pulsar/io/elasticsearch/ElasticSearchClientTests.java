@@ -327,7 +327,7 @@ public abstract class ElasticSearchClientTests extends ElasticSearchTestBase {
                     // disabled, we want to have full control over flush() method
                     .setBulkFlushIntervalInMs(-1);
 
-            SinkContext mockContext = Mockito.mock(SinkContext.class);
+            SinkContext mockContext = mock(SinkContext.class);
             ElasticSearchMetrics metrics = new ElasticSearchMetrics(mockContext);
             try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class), metrics);) {
                 try {
@@ -375,7 +375,7 @@ public abstract class ElasticSearchClientTests extends ElasticSearchTestBase {
                     .setBulkConcurrentRequests(2)
                     .setRetryBackoffInMs(100)
                     .setBulkFlushIntervalInMs(10000);
-            SinkContext mockContext = Mockito.mock(SinkContext.class);
+            SinkContext mockContext = mock(SinkContext.class);
             ElasticSearchMetrics metrics = new ElasticSearchMetrics(mockContext);
             try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class), metrics);) {
                 assertTrue(client.createIndexIfNeeded(index));
@@ -436,7 +436,7 @@ public abstract class ElasticSearchClientTests extends ElasticSearchTestBase {
                 .setBulkActions(10)
                 .setBulkFlushIntervalInMs(-1L);
 
-        SinkContext mockContext = Mockito.mock(SinkContext.class);
+        SinkContext mockContext = mock(SinkContext.class);
         ElasticSearchMetrics metrics = new ElasticSearchMetrics(mockContext);
         try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class), metrics)) {
             assertTrue(client.createIndexIfNeeded(index));
@@ -461,7 +461,7 @@ public abstract class ElasticSearchClientTests extends ElasticSearchTestBase {
         ElasticSearchConfig config = new ElasticSearchConfig()
                 .setElasticSearchUrl("http://" + container.getHttpHostAddress())
                 .setIndexName(index);
-        SinkContext mockContext = Mockito.mock(SinkContext.class);
+        SinkContext mockContext = mock(SinkContext.class);
         ElasticSearchMetrics metrics = new ElasticSearchMetrics(mockContext);
 
         try (ElasticSearchClient client = new ElasticSearchClient(config, mock(SinkContext.class), metrics)) {

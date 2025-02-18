@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import org.apache.bookkeeper.mledger.Entry;
 import org.apache.bookkeeper.mledger.ManagedCursor;
 import org.apache.bookkeeper.mledger.ManagedLedgerConfig;
+import org.apache.bookkeeper.mledger.PositionFactory;
 import org.apache.bookkeeper.test.MockedBookKeeperTestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +76,7 @@ public class OffloadEvictUnusedLedgersTest extends MockedBookKeeperTestCase {
         // no evict when no offloaded ledgers are marked as inactive
         assertTrue(ledger.internalEvictOffloadedLedgers().isEmpty());
 
-        ManagedCursor cursor = ledger.newNonDurableCursor(PositionImpl.EARLIEST);
+        ManagedCursor cursor = ledger.newNonDurableCursor(PositionFactory.EARLIEST);
         int j = 0;
         for (Entry e : cursor.readEntries(25)) {
             assertEquals(new String(e.getData()), "entry-" + j++);
