@@ -61,6 +61,7 @@ public class URLRegexLookupProxyHandlerTest extends MockedPulsarServiceBaseTest 
         proxyConfig.setBrokerProxyAllowedTargetPorts("*");
         proxyConfig.setMetadataStoreUrl(DUMMY_VALUE);
         proxyConfig.setConfigurationMetadataStoreUrl(GLOBAL_DUMMY_VALUE);
+        proxyConfig.setClusterName(configClusterName);
 
         proxyClientAuthentication = AuthenticationFactory.create(proxyConfig.getBrokerClientAuthenticationPlugin(),
                 proxyConfig.getBrokerClientAuthenticationParameters());
@@ -92,6 +93,7 @@ public class URLRegexLookupProxyHandlerTest extends MockedPulsarServiceBaseTest 
         redirectProxyConfig.getProperties().setProperty("urlRegexLookupProxyHandlerRegex", "pulsar:\\/\\/(\\w+):\\d+");
         redirectProxyConfig.getProperties()
             .setProperty("urlRegexLookupProxyHandlerReplacement", proxyService.getServiceUrl());
+        redirectProxyConfig.setClusterName(configClusterName);
 
         @Cleanup
         ProxyService redirectProxyService = Mockito.spy(new ProxyService(redirectProxyConfig, new AuthenticationService(
@@ -148,6 +150,7 @@ public class URLRegexLookupProxyHandlerTest extends MockedPulsarServiceBaseTest 
         redirectProxyConfig.setLookupHandler("org.apache.pulsar.proxy.server.URLRegexLookupProxyHandler");
         redirectProxyConfig.getProperties().setProperty("urlRegexLookupProxyHandlerRegex", "invalid");
         redirectProxyConfig.getProperties().setProperty("urlRegexLookupProxyHandlerReplacement", proxyService.getServiceUrl());
+        redirectProxyConfig.setClusterName(configClusterName);
 
         @Cleanup
         ProxyService redirectProxyService = Mockito.spy(new ProxyService(redirectProxyConfig, new AuthenticationService(
