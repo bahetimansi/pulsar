@@ -1227,7 +1227,7 @@ public class PersistentDispatcherMultipleConsumers extends AbstractDispatcherMul
             return false;
         }
         // consider dispatch is stuck if : dispatcher has backlog, available-permits and there is no pending read
-        if (isAtleastOneConsumerAvailable() && !havePendingReplayRead && !havePendingRead
+        if (totalAvailablePermits > 0 && !havePendingReplayRead && !havePendingRead
                 && cursor.getNumberOfEntriesInBacklog(false) > 0) {
             log.warn("{}-{} Dispatcher is stuck and unblocking by issuing reads", topic.getName(), name);
             readMoreEntries();
