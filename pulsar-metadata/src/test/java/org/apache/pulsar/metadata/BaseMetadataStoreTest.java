@@ -25,7 +25,6 @@ import io.etcd.jetcd.test.EtcdClusterExtension;
 import java.io.File;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
@@ -129,11 +128,11 @@ public abstract class BaseMetadataStoreTest extends TestRetrySupport {
         // The new connection string won't be available to the test method unless a
         // Supplier<String> lambda is used for providing the value.
         return new Object[][]{
-                {"ZooKeeper", providerUrlSupplier(() -> zksConnectionString)},
-                {"Memory", providerUrlSupplier(() -> memoryConnectionString)},
-                {"RocksDB", providerUrlSupplier(() -> rocksdbConnectionString)},
-                {"Etcd", providerUrlSupplier(() -> "etcd:" + getEtcdClusterConnectString(), "etcd:...")},
-                {"MockZooKeeper", providerUrlSupplier(() -> mockZkUrl)},
+                {"ZooKeeper", stringSupplier(() -> zksConnectionString)},
+                {"Memory", stringSupplier(() -> memoryConnectionString)},
+                {"RocksDB", stringSupplier(() -> rocksdbConnectionString)},
+                {"Etcd", stringSupplier(() -> "etcd:" + getEtcdClusterConnectString())},
+                {"MockZooKeeper", stringSupplier(() -> mockZkUrl)},
         };
     }
 
@@ -166,29 +165,16 @@ public abstract class BaseMetadataStoreTest extends TestRetrySupport {
         return etcdCluster.clientEndpoints().stream().map(URI::toString).collect(Collectors.joining(","));
     }
 
-    private static Supplier<String> providerUrlSupplier(Supplier<String> supplier) {
-        return new ProviderUrlSupplier(supplier);
-    }
-
-    // Use this method to provide a custom toString value for the Supplier<String>. Use this when Testcontainers is used
-    // so that a toString call doesn't eagerly trigger container initialization which could cause a deadlock
-    // with Gradle Develocity Maven Extension.
-    private static Supplier<String> providerUrlSupplier(Supplier<String> supplier, String toStringValue) {
-        return new ProviderUrlSupplier(supplier, Optional.ofNullable(toStringValue));
+    public static Supplier<String> stringSupplier(Supplier<String> supplier) {
+        return new StringSupplier(supplier);
     }
 
     // Implements toString() so that the test name is more descriptive
-    private static class ProviderUrlSupplier implements Supplier<String> {
+    private static class StringSupplier implements Supplier<String> {
         private final Supplier<String> supplier;
-        private final Optional<String> toStringValue;
 
-        ProviderUrlSupplier(Supplier<String> supplier) {
-            this(supplier, Optional.empty());
-        }
-
-        ProviderUrlSupplier(Supplier<String> supplier, Optional<String> toStringValue) {
+        public StringSupplier(Supplier<String> supplier) {
             this.supplier = supplier;
-            this.toStringValue = toStringValue;
         }
 
         @Override
@@ -198,9 +184,7 @@ public abstract class BaseMetadataStoreTest extends TestRetrySupport {
 
         @Override
         public String toString() {
-            // toStringValue is used to prevent deadlocks which could occur if toString method call eagerly triggers
-            // Testcontainers initialization. This is the case when Gradle Develocity Maven Extension is used.
-            return toStringValue.orElseGet(this::get);
+            return get();
         }
     }
 
